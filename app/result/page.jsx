@@ -7,52 +7,62 @@ import domtoimage from 'dom-to-image-more';
 import NavBar from "../components/NavBar";
 import { FiArrowDown } from "react-icons/fi";
 import { AuroraText } from "@/components/magicui/aurora-text";
+import { useInterview } from "../context/InterviewContext";
 
 export default function MockInterviewReport() {
   const [report, setReport] = useState(null);
   const user = useAuth();
   const router = useRouter();
   const reportRef = useRef(null); // ← ref to the report section
-  
+  const { mockResult, candidateName } = useInterview();
   useEffect(() => {
     if (user === null) {
       router.push("/login");
     }
   }, [user]);
-
+console.log("Mock Result:", mockResult);
  useEffect(() => {
   try {
-    const raw = localStorage.getItem("mock_result");
-    if (!raw) throw new Error("No mock result");
+    const data = mockResult;
+    if (!data) throw new Error("No mock result");
 
-    const data = JSON.parse(raw);
+   const getScore = (label) => {
+  const line = data.questions.find(q => q.startsWith(`**${label}:`));
+  return line ? parseFloat(line.match(/(\d+(\.\d+)?)/)?.[0] || "0") : 0;
+};
 
-    // If questions are undefined, provide an empty fallback
-    const rawArray = data.questions || [];
-    const fullString = rawArray.join("\n");
-    const match = fullString.match(/```json\s*([\s\S]*?)\s*```/i);
-    const jsonText = match ? match[1] : fullString;
-    const parsedResult = JSON.parse(jsonText || "{}");
+const getRemark = () => {
+  const line = data.questions.find(q => q.startsWith("**Remark:**"));
+  return line ? line.replace("**Remark:**", "").trim() : "No remarks.";
+};
 
-    setReport({
-      candidate: localStorage.getItem("mock_name") || "Candidate",
-      date: new Date().toLocaleDateString("en-IN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      feedback: {
-        communication: parsedResult.communication || 0,
-        problemSolving: parsedResult.problemSolving || 0,
-        technicalSkills: parsedResult.technicalSkills || 0,
-        confidence: parsedResult.confidence || 0,
-        timeManagement: parsedResult.timeManagement || 0,
-        overall: parsedResult.overall || 0,
-      },
-      result: parsedResult.result || false,
-      remarks: parsedResult.remarks || "No remarks.",
-      status: parsedResult.result ? "Passed" : "Failed",
-    });
+const getResult = () => {
+  const line = data.questions.find(q => q.startsWith("**Verdict:**"));
+  return line?.includes("Passed") ? true : false;
+};
+
+const reportData = {
+  candidate: candidateName || user?.displayName || "Unknown Candidate",
+  date: new Date().toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }),
+  feedback: {
+    communication: getScore("Communication"),
+    problemSolving: getScore("Problem Solving"),
+    technicalSkills: getScore("Technical Skills"),
+    confidence: getScore("Confidence"),
+    timeManagement: getScore("Time Management"),
+    overall: getScore("Overall"),
+  },
+  result: getResult(),
+  remarks: getRemark(),
+  status: getResult() ? "Passed" : "Failed",
+};
+
+setReport(reportData);
+console.log(reportData);
   } catch (err) {
     console.error("Error loading mock_result:", err);
     setReport({
@@ -72,6 +82,7 @@ export default function MockInterviewReport() {
     });
   }
 }, []);
+
 
 
  const handleDownload = async () => {

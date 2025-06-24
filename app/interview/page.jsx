@@ -8,11 +8,13 @@ import Camera from "../components/Camera";
 import { useRouter } from "next/navigation";
 import NavBar from "../components/NavBar";
 import { useAuth } from "../lib/useAuth";
+import { useInterview } from "../context/InterviewContext";
 
 export default function InterviewPage() {
   const router = useRouter();
   const user = useAuth();
-
+  const { setMockResult, setCandidateName } = useInterview();
+  const { skills, experience } = useInterview();
   const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
   const [answered, setAnswered] = useState([]);
@@ -22,19 +24,12 @@ export default function InterviewPage() {
   const [warnings, setWarnings] = useState(0);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [introSpoken, setIntroSpoken] = useState(false);
-  const [skills, setSkills] = useState([]);
-  const [experience, setExperience] = useState("fresher");
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const userName = user?.displayName || "Student";
   
 
-  useEffect(() => {
-    const parsedSkills = JSON.parse(localStorage.getItem("mock_skills") || "[]");
-    const expLevel = localStorage.getItem("experience_level") || "Beginner";
-    setSkills(parsedSkills);
-    setExperience(expLevel);
-  }, []);
 
+console.log("InterviewPage rendered with skills:", skills, "and experience:", experience);
   useEffect(() => {
     const explainInterview = async () => {
       if (!skills.length) return;
@@ -46,7 +41,11 @@ export default function InterviewPage() {
     };
     explainInterview();
   }, [skills, experience]);
-
+useEffect(() => {
+  if (!skills.length || !experience) {
+    router.push("/"); // Redirect to upload if data is missing
+  }
+}, [skills, experience]);
   const startInterview = async () => {
     setStarted(true);
     await document.documentElement.requestFullscreen();
@@ -58,6 +57,7 @@ export default function InterviewPage() {
         prompt: `Generate 5 short, beginner-friendly interview questions for a student learning ${skills.join(", ")} with ${experience} experience. Only return the questions in a list format.`,
       }),
     });
+    
 
     const data = await res.json();
     setQuestions(data.questions || []);
@@ -139,7 +139,7 @@ ${userAnswers}
     });
 
     const result = await res.json();
-    localStorage.setItem("mock_result", JSON.stringify(result));
+    setMockResult(result);
     router.push("/result");
   };
 
@@ -171,8 +171,8 @@ useEffect(() => {
             questions: [], // ✅ Prevents .join crash on /result
           };
 
-          localStorage.setItem("mock_result", JSON.stringify(result));
-          localStorage.setItem("mock_name", userName); // for display on result
+          setMockResult(result);
+          setCandidateName(userName); // for display on result
           speak("Interview canceled. Proxy or manipulation detected.");
           setStarted(false);
          speak("Interview canceled. Proxy or manipulation detected.");

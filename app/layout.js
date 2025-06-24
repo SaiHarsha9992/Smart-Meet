@@ -1,5 +1,6 @@
 import { Josefin_Sans } from "next/font/google";
 import "./globals.css";
+import { InterviewProvider } from "./context/InterviewContext";
 
 const josefinSans = Josefin_Sans({
   subsets: ["latin"],
@@ -15,7 +16,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${josefinSans.className} antialiased`}>
-        {children}
+        <InterviewProvider>{children}</InterviewProvider>
       </body>
     </html>
   );

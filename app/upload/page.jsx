@@ -5,14 +5,20 @@ import { useRouter } from 'next/navigation';
 import { parseResumeSkills } from '@/app/utils/parseResume';
 import NavBar from '../components/NavBar';
 import { useAuth } from '../lib/useAuth';
+import { useInterview } from '../context/InterviewContext';
 
 export default function Upload() {
+  const {
+  setSkills: setCtxSkills,
+  setExperience: setCtxExperience,
+  setCandidateName
+} = useInterview();
+
   const [skills, setSkills] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [experience, setExperience] = useState("");
-  const [name, setName] = useState(""); // 🧑‍💼 New: Capture user name
   const router = useRouter();
   const fileInputRef = useRef(null);
   const user = useAuth();
@@ -49,11 +55,13 @@ export default function Upload() {
     }
   };
 
-  const handleContinue = () => {
-    localStorage.setItem("mock_skills", JSON.stringify(skills));
-    localStorage.setItem("experience_level", experience);
-    router.push('/interview');
-  };
+const handleContinue = () => {
+  setCtxSkills(skills);
+  setCtxExperience(experience);
+  setCandidateName(user?.displayName || "Candidate");
+  router.push('/interview');
+};
+
 
   return (
     <>
@@ -108,14 +116,15 @@ export default function Upload() {
           </div>
 
           <button
-            onClick={handleContinue}
-            disabled={!experience}
-            className={`mt-6 w-full py-2 rounded-lg font-semibold ${
-              !experience || !name ? "bg-gray-600 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
-            } text-white transition`}
-          >
-            Start Mock Interview
-          </button>
+  onClick={handleContinue}
+  disabled={!experience}
+  className={`mt-6 w-full py-2 rounded-lg font-semibold ${
+    !experience ? "bg-gray-600 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+  } text-white transition`}
+>
+  Start Mock Interview
+</button>
+
         </div>
         
       )}
