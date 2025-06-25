@@ -8,13 +8,12 @@ import Camera from "../components/Camera";
 import { useRouter } from "next/navigation";
 import NavBar from "../components/NavBar";
 import { useAuth } from "../lib/useAuth";
-import { FaFlag } from "react-icons/fa6";
 import { useInterview } from "../context/InterviewContext";
 
 export default function InterviewPage() {
   const router = useRouter();
   const user = useAuth();
-  const { setMockResult, setCandidateName, mockResult } = useInterview();
+  const { setMockResult, setCandidateName } = useInterview();
   const { skills, experience } = useInterview();
   const [questions, setQuestions] = useState([]);
   const [current, setCurrent] = useState(0);
@@ -27,11 +26,7 @@ export default function InterviewPage() {
   const [introSpoken, setIntroSpoken] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const userName = user?.displayName || "Student";
-  const [showReportDialog, setShowReportDialog] = useState(false);
-  const [issueType, setIssueType] = useState("");
-  const [issueDescription, setIssueDescription] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
-
+  
 
 
 console.log("InterviewPage rendered with skills:", skills, "and experience:", experience);
@@ -46,11 +41,11 @@ console.log("InterviewPage rendered with skills:", skills, "and experience:", ex
     };
     explainInterview();
   }, [skills, experience]);
-// useEffect(() => {
-//   if (!skills.length || !experience) {
-//     router.push("/"); // Redirect to upload if data is missing
-//   }
-// }, [skills, experience]);
+useEffect(() => {
+  if (!skills.length || !experience) {
+    router.push("/"); // Redirect to upload if data is missing
+  }
+}, [skills, experience]);
   const startInterview = async () => {
     setStarted(true);
     await document.documentElement.requestFullscreen();
@@ -114,15 +109,11 @@ console.log("InterviewPage rendered with skills:", skills, "and experience:", ex
     }
   };
 
-const handleFinishInterview = async () => {
-  const userAnswers = messages
-    .filter((msg) => msg.role === "user")
-    .map((msg) => msg.text)
-    .join("\n");
+  const handleFinishInterview = async () => {
+    const userAnswers = messages.filter((msg) => msg.role === "user").map((msg) => msg.text).join("\n");
+    const unansweredCount = answered.filter((ans) => !ans).length;
 
-  const unansweredCount = answered.filter((ans) => !ans).length;
-
-  const prompt = `
+    const prompt = `
 You are an AI interviewer. Based on the student's answers below, give a performance review with scores out of 10 for:
 
 - communication
@@ -141,7 +132,6 @@ Answers:
 ${userAnswers}
 `;
 
-  try {
     const res = await fetch("/api/gemini", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -150,51 +140,8 @@ ${userAnswers}
 
     const result = await res.json();
     setMockResult(result);
-    setCandidateName(userName);
-
-    const getRemark = () => {
-      const line = result?.text?.split("\n").find((line) =>
-        line.toLowerCase().includes("remark")
-      );
-      return line ? line.replace(/[*_]*remark[:]*[*_]*/i, "").trim() : "No remarks.";
-    };
-
-    const getResult = () => {
-      const line = result?.text?.split("\n").find((line) =>
-        line.toLowerCase().includes("verdict")
-      );
-      return line?.toLowerCase().includes("pass") ? true : false;
-    };
-
-    const reportData = {
-      candidate: user?.displayName || "Unknown Candidate",
-      date: new Date().toLocaleDateString("en-IN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      feedback: {
-        communication: result?.feedback?.communication || 0,
-        problemSolving: result?.feedback?.problemSolving || 0,
-        technicalSkills: result?.feedback?.technicalSkills || 0,
-        confidence: result?.feedback?.confidence || 0,
-        timeManagement: result?.feedback?.timeManagement || 0,
-        overall: result?.feedback?.overall || 0,
-      },
-      result: getResult(),
-      remarks: getRemark(),
-      status: getResult() ? "Passed" : "Failed",
-    };
-
-    // Removed Lambda submission
     router.push("/result");
-  } catch (err) {
-    console.error("❌ Failed to evaluate report:", err);
-    alert("Something went wrong during evaluation.");
-  }
-};
-
-
+  };
 
 useEffect(() => {
   const handleFullscreenExit = () => {
@@ -255,39 +202,6 @@ setTimeout(() => {
     return null;
   }
 
- const handleSubmitReport = async () => {
-  try {
-    const res = await fetch("https://9xbddx8l07.execute-api.eu-north-1.amazonaws.com/prod/report-issue", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_name: user?.displayName || "Unknown",
-        email: user?.email || "unknown@example.com",
-        issue_type: issueType,
-        issue_description: issueDescription,
-        contact_number: contactNumber,
-      }),
-    });
-
-    if (res.ok) {
-      alert("✅ Issue reported successfully.");
-      setShowReportDialog(false);
-      setIssueType("");
-      setIssueDescription("");
-      setContactNumber("");
-    } else {
-      alert("❌ Failed to report the issue.");
-    }
-  } catch (error) {
-    console.error("Report error:", error);
-    alert("⚠️ Something went wrong while reporting.");
-  }
-};
-
-
-
   return (
     <>
       
@@ -307,7 +221,6 @@ setTimeout(() => {
               </div>
             </div>
           ))}
-          
           {loading && (
             <div className="flex justify-start">
               <div className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm animate-pulse">Typing...</div>
@@ -334,7 +247,12 @@ setTimeout(() => {
                 Finish Interview
               </button>
             )}
-           
+            <div className="text-sm text-gray-400 mt-2">
+              Question {current + 1} of {questions.length}
+            </div>
+            <div className="text-sm text-gray-400 mt-2 relative bottom-0 right-0">
+              Report An Issue
+            </div>
           </div>
         )}
 
@@ -371,81 +289,7 @@ setTimeout(() => {
   </div>
 )}
 
-{showReportDialog && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
-    <div className="bg-white text-black rounded-xl shadow-xl w-[90%] max-w-md p-6 space-y-4">
-      <h2 className="text-xl font-semibold text-center">📝 Report Issue</h2>
-      
-     <label className="block">
-  <span className="text-sm font-medium">Issue Type</span>
-  <select
-    value={issueType}
-    onChange={(e) => setIssueType(e.target.value)}
-    className="w-full mt-1 p-2 border border-gray-300 rounded"
-  >
-    <option value="">Select Issue</option>
-    <option value="Resume Upload">Resume Upload</option>
-    <option value="Job Role Selection">Job Role Selection</option>
-    <option value="Interview Interface">Interview Interface</option>
-    <option value="Camera/Mic Issue">Camera/Mic Issue</option>
-    <option value="Question/Answer Issue">Question/Answer Issue</option>
-    <option value="Submission Error">Submission Error</option>
-    <option value="Feedback Error">Feedback Error</option>
-  </select>
-</label>
-
-
-      <label className="block">
-        <span className="text-sm font-medium">Issue Description</span>
-        <textarea
-          value={issueDescription}
-          onChange={(e) => setIssueDescription(e.target.value)}
-          className="w-full mt-1 p-2 border border-gray-300 rounded"
-          rows={3}
-          placeholder="Describe your issue..."
-        />
-      </label>
-
-      <label className="block">
-        <span className="text-sm font-medium">Contact Number</span>
-        <input
-          type="text"
-          value={contactNumber}
-          onChange={(e) => setContactNumber(e.target.value)}
-          className="w-full mt-1 p-2 border border-gray-300 rounded"
-          placeholder="9876543210"
-        />
-      </label>
-
-      <div className="flex justify-between mt-4">
-        <button
-          onClick={() => setShowReportDialog(false)}
-          className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSubmitReport}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Submit
-        </button>
       </div>
-    </div>
-  </div>
-)}
-
-       <div className="text-sm text-gray-400 mt-2">
-            Question {current + 1} of {questions.length}
-        </div>
-        <button onClick={() => setShowReportDialog(true)}
- className="fixed text-sm text-white w-40 mb-2 bottom-0 right-0 mr-2 rounded-2xl bg-blue-500 p-2 hover:bg-blue-600 transition">
-          🚩 Report
-        </button>
-
-
-      </div>
-      
     </>
   );
 }
