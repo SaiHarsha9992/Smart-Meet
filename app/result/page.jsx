@@ -25,68 +25,65 @@ export default function MockInterviewReport() {
     }
   }, [user]);
 
-  useEffect(() => {
-   if (!mockResult || !mockResult.questions || mockResult.questions.length === 0) {
+useEffect(() => {
+  if (!mockResult) {
     router.push("/upload");
     return;
   }
-  if (user == null || user === undefined || !user) {
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
-      <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-      </svg>
-      <p className="text-lg font-medium">No Account, No Interview 😉</p>
-    </div>
-  );
-}
 
+  const isProxyFailed = mockResult.result === false && mockResult.status === "Failed";
 
-    try {
-      const data = mockResult;
+  if ((!mockResult.questions || mockResult.questions.length === 0) && !isProxyFailed) {
+    router.push("/upload");
+    return;
+  }
 
-      const getScore = (label) => {
-        const line = data.questions.find(q => q.startsWith(`**${label}:`));
-        return line ? parseFloat(line.match(/(\d+(\.\d+)?)/)?.[0] || "0") : 0;
-      };
+  if (!user) return;
 
-      const getRemark = () => {
-        const line = data.questions.find(q => q.startsWith("**Remark:**"));
-        return line ? line.replace("**Remark:**", "").trim() : "No remarks.";
-      };
+  try {
+    const data = mockResult;
 
-      const getResult = () => {
-        const line = data.questions.find(q => q.startsWith("**Verdict:**"));
-        return line?.includes("Passed") ? true : false;
-      };
+    const getScore = (label) => {
+      const line = data.questions.find(q => q.startsWith(`**${label}:`));
+      return line ? parseFloat(line.match(/(\d+(\.\d+)?)/)?.[0] || "0") : 0;
+    };
 
-      const generatedReport = {
-        candidate: candidateName || user?.displayName || "Unknown Candidate",
-        date: new Date().toLocaleDateString("en-IN", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-        feedback: {
-          communication: getScore("Communication"),
-          problemSolving: getScore("Problem Solving"),
-          technicalSkills: getScore("Technical Skills"),
-          confidence: getScore("Confidence"),
-          timeManagement: getScore("Time Management"),
-          overall: getScore("Overall"),
-        },
-        result: getResult(),
-        remarks: getRemark(),
-        status: getResult() ? "Passed" : "Failed",
-      };
+    const getRemark = () => {
+      const line = data.questions.find(q => q.startsWith("**Remark:**"));
+      return line ? line.replace("**Remark:**", "").trim() : data.remarks || "No remarks.";
+    };
 
-      setReport(generatedReport);
-      setReportData(generatedReport);
-    } catch (err) {
-      console.error("Error parsing report:", err);
-    }
-  }, [mockResult, user]);
+    const getResult = () => {
+      const line = data.questions.find(q => q.startsWith("**Verdict:**"));
+      return line?.includes("Passed") || data.result === true;
+    };
+
+    const generatedReport = {
+      candidate: candidateName || user?.displayName || "Unknown Candidate",
+      date: new Date().toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      feedback: {
+        communication: getScore("Communication") || data.feedback?.communication || 0,
+        problemSolving: getScore("Problem Solving") || data.feedback?.problemSolving || 0,
+        technicalSkills: getScore("Technical Skills") || data.feedback?.technicalSkills || 0,
+        confidence: getScore("Confidence") || data.feedback?.confidence || 0,
+        timeManagement: getScore("Time Management") || data.feedback?.timeManagement || 0,
+        overall: getScore("Overall") || data.feedback?.overall || 0,
+      },
+      result: getResult(),
+      remarks: getRemark(),
+      status: getResult() ? "Passed" : "Failed",
+    };
+
+    setReport(generatedReport);
+    setReportData(generatedReport);
+  } catch (err) {
+    console.error("Error parsing report:", err);
+  }
+}, [mockResult, user]);
 
   const hasSentRef = useRef(false);
 

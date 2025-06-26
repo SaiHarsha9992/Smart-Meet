@@ -6,6 +6,7 @@ import { parseResumeSkills } from '@/app/utils/parseResume';
 import NavBar from '../components/NavBar';
 import { useAuth } from '../lib/useAuth';
 import { useInterview } from '../context/InterviewContext';
+import Footer from '../components/Footer';
 
 export default function Upload() {
   const {
@@ -141,6 +142,7 @@ const handleContinue = () => {
         <p className="text-gray-400 mt-4">No skills found in the uploaded file.</p>
       )}
     </div>
+    <Footer/>
     </>
   );
 }

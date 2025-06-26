@@ -13,7 +13,7 @@ const emojiMap = {
   neutral: "😐",
 };
 
-const Camera = () => {
+const Camera = ({ onProxyDetected }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -80,24 +80,28 @@ const Camera = () => {
     let interval;
 
     if (isCameraOn && modelsLoaded) {
-      interval = setInterval(async () => {
-        if (videoRef.current) {
-          const result = await faceapi
-            .detectSingleFace(
-              videoRef.current,
-              new faceapi.TinyFaceDetectorOptions()
-            )
-            .withFaceExpressions();
+     interval = setInterval(async () => {
+  if (videoRef.current) {
+    const detections = await faceapi
+      .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+      .withFaceExpressions();
 
-          if (result?.expressions) {
-            const sorted = Object.entries(result.expressions).sort(
-              (a, b) => b[1] - a[1]
-            );
-            const topEmotion = sorted[0][0];
-            setEmoji(emojiMap[topEmotion] || "😐");
-          }
-        }
-      }, 1000);
+    if (detections.length > 1) {
+      onProxyDetected?.(); // call the handler
+      clearInterval(interval); // stop further detection
+      return;
+    }
+
+    if (detections[0]?.expressions) {
+      const sorted = Object.entries(detections[0].expressions).sort(
+        (a, b) => b[1] - a[1]
+      );
+      const topEmotion = sorted[0][0];
+      setEmoji(emojiMap[topEmotion] || "😐");
+    }
+  }
+}, 1000);
+
     }
 
     return () => clearInterval(interval);
