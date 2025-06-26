@@ -73,37 +73,48 @@ export default function Dashboard() {
     const encodedName = encodeURIComponent(candidateName);
 
     const fetchReports = async () => {
-      try {
-        const apiUrl = `https://4fea3btet1.execute-api.eu-north-1.amazonaws.com/prod/fetch-reports?name=${encodedName}`;
-        console.log("🔗 API Link:", apiUrl);
+  try {
+    const apiUrl = `https://4fea3btet1.execute-api.eu-north-1.amazonaws.com/prod/fetch-reports?name=${encodedName}`;
+    console.log("🔗 API Link:", apiUrl);
 
-        const res = await fetch(apiUrl);
-        const json = await res.json();
-        const data = json.result;
+    const res = await fetch(apiUrl);
+    const json = await res.json();
+    const data = json.result;
 
-        if (!Array.isArray(data) || data.length === 0) {
-          throw new Error("No results found.");
-        }
+    // ✅ Instead of throwing an error, allow it to go forward with empty data
+    if (!Array.isArray(data)) {
+      console.warn("⚠️ Invalid result format:", data);
+      setTestResults([]);
+      setLoading(false);
+      return;
+    }
 
-        const formatted = data.map((report, index) => ({
-          test: `Test ${index + 1}`,
-          communication: parseFloat(report.u_communication) || 0,
-          problemSolving: parseFloat(report.u_problem_solving) || 0,
-          technicalSkills: parseFloat(report.u_technical_skills) || 0,
-          confidence: parseFloat(report.u_confidence) || 0,
-          timeManagement: parseFloat(report.u_time_management) || 0,
-          overall: parseFloat(report.u_overall_score) || 0,
-        }));
+    if (data.length === 0) {
+      setTestResults([]); // ✅ Allow showing "No Reports Found"
+      setLoading(false);
+      return;
+    }
 
-        setTestResults(formatted);
-        computeAverages(formatted);
-        setLoading(false);
-      } catch (err) {
-        console.error("❌ Error fetching data:", err.message);
-        setError(true);
-        setLoading(false);
-      }
-    };
+    const formatted = data.map((report, index) => ({
+      test: `Test ${index + 1}`,
+      communication: parseFloat(report.u_communication) || 0,
+      problemSolving: parseFloat(report.u_problem_solving) || 0,
+      technicalSkills: parseFloat(report.u_technical_skills) || 0,
+      confidence: parseFloat(report.u_confidence) || 0,
+      timeManagement: parseFloat(report.u_time_management) || 0,
+      overall: parseFloat(report.u_overall_score) || 0,
+    }));
+
+    setTestResults(formatted);
+    computeAverages(formatted);
+    setLoading(false);
+  } catch (err) {
+    console.error("❌ Error fetching data:", err.message);
+    setError(true);
+    setLoading(false);
+  }
+};
+
 
     fetchReports(); // only call once name is ready
   }
@@ -143,6 +154,24 @@ if (user === undefined) {
       </div>
     );
   }
+if (testResults.length === 0) {
+  return (
+    <>
+      <NavBar />
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center">
+        <p className="text-4xl mb-4 animate-pulse">🚫 No Reports Found</p>
+        <p className="text-lg text-gray-400">Looks like you haven’t completed any interviews yet.</p>
+        <button
+          onClick={() => router.push("/upload")}
+          className="mt-6 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold"
+        >
+          Start Your First Interview
+        </button>
+      </div>
+      <Footer />
+    </>
+  );
+}
 
   return (
     <>

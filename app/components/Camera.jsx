@@ -13,7 +13,7 @@ const emojiMap = {
   neutral: "😐",
 };
 
-const Camera = ({ onProxyDetected }) => {
+const Camera = ({ onProxyDetected, onFirstProxyWarning }) => {
   
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -21,6 +21,7 @@ const Camera = ({ onProxyDetected }) => {
   const [error, setError] = useState("");
   const [emoji, setEmoji] = useState("😐");
   const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [proxyWarningShown, setProxyWarningShown] = useState(false); // ✅ new state
 
   const loadModels = async () => {
     const MODEL_URL = "/models";
@@ -77,36 +78,38 @@ const Camera = ({ onProxyDetected }) => {
     };
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     let interval;
-
     if (isCameraOn && modelsLoaded) {
-     interval = setInterval(async () => {
-  if (videoRef.current) {
-    const detections = await faceapi
-      .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-      .withFaceExpressions();
+      interval = setInterval(async () => {
+        if (videoRef.current) {
+          const detections = await faceapi
+            .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+            .withFaceExpressions();
 
-    if (detections.length > 1) {
-      onProxyDetected?.(); // call the handler
-      clearInterval(interval); // stop further detection
-      return;
+          if (detections.length > 1) {
+            if (!proxyWarningShown) {
+              setProxyWarningShown(true);
+              if (onFirstProxyWarning) onFirstProxyWarning(); // ✅ Show warning once
+            } else {
+              onProxyDetected?.(); // ✅ Second time → fail
+              clearInterval(interval);
+            }
+            return;
+          }
+
+          if (detections[0]?.expressions) {
+            const sorted = Object.entries(detections[0].expressions).sort(
+              (a, b) => b[1] - a[1]
+            );
+            const topEmotion = sorted[0][0];
+            setEmoji(emojiMap[topEmotion] || "😐");
+          }
+        }
+      }, 1000);
     }
-
-    if (detections[0]?.expressions) {
-      const sorted = Object.entries(detections[0].expressions).sort(
-        (a, b) => b[1] - a[1]
-      );
-      const topEmotion = sorted[0][0];
-      setEmoji(emojiMap[topEmotion] || "😐");
-    }
-  }
-}, 1000);
-
-    }
-
     return () => clearInterval(interval);
-  }, [isCameraOn, modelsLoaded]);
+  }, [isCameraOn, modelsLoaded, proxyWarningShown, onProxyDetected, onFirstProxyWarning]);
 
   return (
     <div className="relative w-[250px] h-[180px] bg-black rounded-lg overflow-hidden flex items-center justify-center">

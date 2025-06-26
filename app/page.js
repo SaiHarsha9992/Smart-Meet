@@ -25,7 +25,7 @@ export default function Home() {
     <iframe
       src="https://lottie.host/embed/7785093d-48aa-4408-aaf6-d67b07957c70/6FVLh9VVTr.lottie"
       title="SmartMeet Demo"
-      className="w-full max-w-5xl h-[500px] rounded-xl shadow-lg"
+      className="w-full max-w-5xl h-[500px] rounded-xl "
     />
   </div>
 

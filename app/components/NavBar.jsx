@@ -6,6 +6,10 @@ import { useRouter } from "next/navigation";
 import { auth } from "@/app/lib/firebase";
 import { useAuth } from "@/app/lib/useAuth";
 import { AuroraText } from "@/components/magicui/aurora-text";
+import { FaHome } from "react-icons/fa";
+import { FcAbout } from "react-icons/fc"; 
+import { RiContactsBook3Fill } from "react-icons/ri";
+import { MdSpaceDashboard } from "react-icons/md";
 
 export default function NavBar() {
   const [open, setOpen] = useState(false);
@@ -24,7 +28,12 @@ export default function NavBar() {
   return (
     <header className="w-full flex justify-between items-center p-4 bg-black shadow-md relative">
       <a href="/"><h1 className="font-bold text-white text-4xl">Smart<AuroraText>Meet</AuroraText></h1></a>
-
+      <nav className="flex items-center space-x-12 text-4xl">
+        <a href="/" className="text-white hover:text-blue-500 transition"><FaHome/></a>
+        <a href="/dashboard" className="text-white hover:text-blue-500 transition"><MdSpaceDashboard /></a>
+        <a href="/about" className="text-white hover:text-blue-500 transition"><FcAbout/></a>
+        <a href="/contact" className="text-white hover:text-blue-500 transition"><RiContactsBook3Fill /></a>
+      </nav>
       {!user ? (
         <button
           onClick={() => router.push("/login")}

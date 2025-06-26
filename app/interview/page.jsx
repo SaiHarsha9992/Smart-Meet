@@ -22,15 +22,17 @@ export default function InterviewPage() {
   const [loading, setLoading] = useState(false);
   const [started, setStarted] = useState(false);
   const [warnings, setWarnings] = useState(0);
+  const [tabWarnings, setTabWarnings] = useState(0);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [showTabDialog, setShowTabDialog] = useState(false);
   const [introSpoken, setIntroSpoken] = useState(false);
   const [showWarningDialog, setShowWarningDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [issueType, setIssueType] = useState("");
   const [issueDescription, setIssueDescription] = useState("");
   const [contactNumber, setContactNumber] = useState("");
-  const [proxyFailed, setProxyFailed] = useState(false); // ✅ New state
-
+  const [proxyFailed, setProxyFailed] = useState(false);
+  const [proxyWarnings, setProxyWarnings] = useState(0);
   const userName = user?.displayName || "Student";
 
   useEffect(() => {
@@ -56,37 +58,45 @@ export default function InterviewPage() {
     };
 
     explainInterview();
-  }, [skills, experience, proxyFailed]); // ✅ include proxyFailed
+  }, [skills, experience, proxyFailed]);
 
   const handleProxyDetected = () => {
-    const result = {
-      candidate: userName,
-      date: new Date().toLocaleDateString("en-IN"),
-      feedback: {
-        communication: 0,
-        problemSolving: 0,
-        technicalSkills: 0,
-        confidence: 0,
-        timeManagement: 0,
-        overall: 0,
-      },
-      result: false,
-      remarks: "❌ Interview failed. Multiple faces detected (proxy attempt).",
-      status: "Failed",
-      questions: [],
-    };
-    setMockResult(result);
-    setCandidateName(userName);
-    setProxyFailed(true); // ✅ Flag it as failed due to proxy
-    speak("Interview failed. Multiple people detected. You are disqualified.");
-    setStarted(false);
-    document.exitFullscreen?.(); // exit fullscreen mode
-    const video = document.querySelector("video");
-    if (video?.srcObject) {
-      video.srcObject.getTracks().forEach((track) => track.stop());
-    }
-    setTimeout(() => router.push("/result"), 500);
+  if (proxyWarnings === 0) {
+    // 🔔 First warning only
+    speak("Warning: Multiple people detected. Please make sure you are alone.");
+    setProxyWarnings(1);
+    setShowWarningDialog(true); // ✅ show the warning dialog
+    return;
+  }
+
+
+  const result = {
+    candidate: userName,
+    date: new Date().toLocaleDateString("en-IN"),
+    feedback: {
+      communication: 0,
+      problemSolving: 0,
+      technicalSkills: 0,
+      confidence: 0,
+      timeManagement: 0,
+      overall: 0,
+    },
+    result: false,
+    remarks: "❌ Interview failed. Multiple faces detected (proxy attempt).",
+    status: "Failed",
+    questions: [],
   };
+  setMockResult(result);
+  setCandidateName(userName);
+  setProxyFailed(true);
+  speak("Interview failed. Multiple people detected. You are disqualified.");
+  setStarted(false);
+  document.exitFullscreen?.();
+  const video = document.querySelector("video");
+  if (video?.srcObject) video.srcObject.getTracks().forEach((track) => track.stop());
+  setTimeout(() => router.push("/result"), 500);
+};
+
 
   const startInterview = async () => {
     setStarted(true);
@@ -158,12 +168,9 @@ export default function InterviewPage() {
       const result = await res.json();
       setMockResult(result);
       setCandidateName(userName);
-      document.exitFullscreen?.(); // exit fullscreen mode
-const video = document.querySelector("video");
-if (video?.srcObject) {
-  video.srcObject.getTracks().forEach((track) => track.stop());
-}
-
+      document.exitFullscreen?.();
+      const video = document.querySelector("video");
+      if (video?.srcObject) video.srcObject.getTracks().forEach((track) => track.stop());
       router.push("/result");
     } catch (err) {
       console.error("❌ Failed to evaluate report:", err);
@@ -171,54 +178,93 @@ if (video?.srcObject) {
     }
   };
 
+  // Fullscreen exit warning
   useEffect(() => {
-  const handleFullscreenExit = () => {
-    if (!document.fullscreenElement && started) {
-      setWarnings((prev) => {
-        const updated = prev + 1;
-        if (updated >= 3) {
-          const result = {
-            candidate: userName,
-            date: new Date().toLocaleDateString("en-IN"),
-            feedback: {
-              communication: 0,
-              problemSolving: 0,
-              technicalSkills: 0,
-              confidence: 0,
-              timeManagement: 0,
-              overall: 0,
-            },
-            result: false,
-            remarks: "❌ Proxy detected or user manipulated the exam by exiting full screen repeatedly.",
-            status: "Failed",
-            questions: [],
-          };
-          setMockResult(result);
-          setCandidateName(userName);
-          speak("Interview canceled. Proxy or manipulation detected.");
-          setStarted(false);
-          document.exitFullscreen?.(); // exit fullscreen mode
-const video = document.querySelector("video");
-if (video?.srcObject) {
-  video.srcObject.getTracks().forEach((track) => track.stop());
-}
+    const handleFullscreenExit = () => {
+      if (!document.fullscreenElement && started) {
+        setWarnings((prev) => {
+          const updated = prev + 1;
+          if (updated >= 3) {
+            const result = {
+              candidate: userName,
+              date: new Date().toLocaleDateString("en-IN"),
+              feedback: {
+                communication: 0,
+                problemSolving: 0,
+                technicalSkills: 0,
+                confidence: 0,
+                timeManagement: 0,
+                overall: 0,
+              },
+              result: false,
+              remarks: "❌ Proxy detected or user manipulated the exam by exiting full screen repeatedly.",
+              status: "Failed",
+              questions: [],
+            };
+            setMockResult(result);
+            setCandidateName(userName);
+            speak("Interview canceled. Proxy or manipulation detected.");
+            setStarted(false);
+            document.exitFullscreen?.();
+            const video = document.querySelector("video");
+            if (video?.srcObject) video.srcObject.getTracks().forEach((track) => track.stop());
+            setTimeout(() => router.push("/result"), 0);
+          } else {
+            setShowExitDialog(true);
+          }
+          return updated;
+        });
+      }
+    };
 
-          setTimeout(() => router.push("/result"), 0);
-        } else {
-          setShowExitDialog(true);
-        }
-        return updated; // ✅ Safe to return updated value to update state
-      });
-    }
-  };
+    document.addEventListener("fullscreenchange", handleFullscreenExit);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenExit);
+  }, [started]);
 
-  document.addEventListener("fullscreenchange", handleFullscreenExit);
-  return () => {
-    document.removeEventListener("fullscreenchange", handleFullscreenExit);
-  };
-}, [started, userName, router]);
+  // Tab switch warning
+  useEffect(() => {
+    const handleTabSwitch = () => {
+      if (document.visibilityState === "hidden" && started) {
+        setTabWarnings((prev) => {
+          const updated = prev + 1;
+          if (updated >= 3) {
+            const result = {
+              candidate: userName,
+              date: new Date().toLocaleDateString("en-IN"),
+              feedback: {
+                communication: 0,
+                problemSolving: 0,
+                technicalSkills: 0,
+                confidence: 0,
+                timeManagement: 0,
+                overall: 0,
+              },
+              result: false,
+              remarks: "❌ Interview failed. Tab switching or minimizing screen repeatedly.",
+              status: "Failed",
+              questions: [],
+            };
+            setMockResult(result);
+            setCandidateName(userName);
+            speak("Interview failed due to tab switching.");
+            setStarted(false);
+            document.exitFullscreen?.();
+            const video = document.querySelector("video");
+            if (video?.srcObject) video.srcObject.getTracks().forEach((track) => track.stop());
+            setTimeout(() => router.push("/result"), 500);
+          } else {
+            setShowTabDialog(true);
+          }
+          return updated;
+        });
+      }
+    };
 
+    document.addEventListener("visibilitychange", handleTabSwitch);
+    return () => document.removeEventListener("visibilitychange", handleTabSwitch);
+  }, [started]);
 
+  // Report dialog submit
   const handleSubmitReport = async () => {
     try {
       const res = await fetch("https://9xbddx8l07.execute-api.eu-north-1.amazonaws.com/prod/report-issue", {
@@ -248,15 +294,6 @@ if (video?.srcObject) {
   };
 
   if (user === undefined) return <div className="text-white text-center p-6">Checking login...</div>;
-
-  if (!skills.length || !experience) {
-    return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
-        <svg className="animate-spin h-8 w-8 text-white" viewBox="0 0 24 24" />
-        <p className="text-lg font-medium">Skills not found. Redirecting...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="relative min-h-screen bg-black text-white p-6 flex flex-col items-center">
@@ -296,6 +333,55 @@ if (video?.srcObject) {
           ) : (
             <button onClick={handleFinishInterview} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm">Finish Interview</button>
           )}
+        </div>
+      )}
+
+      {showWarningDialog && (
+  <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex justify-center items-center z-50">
+    <div className="bg-black text-white border-4 border-white p-6 rounded-lg shadow-lg max-w-md text-center">
+      <h2 className="text-2xl font-semibold text-red-700">⚠️ Warning</h2>
+
+      {/* Show different message based on proxyWarnings value */}
+      {proxyWarnings === 1 ? (
+        <p>Multiple people were detected in the frame. Please make sure you're alone. The next time, your interview will end.</p>
+      ) : (
+        <p>Please answer the current question before proceeding.</p>
+      )}
+
+      <button
+        className="mt-4 px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+        onClick={() => setShowWarningDialog(false)}
+      >
+        Okay
+      </button>
+    </div>
+  </div>
+)}
+
+
+      
+
+      {showExitDialog && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 flex justify-center items-center z-50">
+          <div className="bg-black text-white border border-red-500 p-6 rounded-xl max-w-md">
+            <h2 className="text-xl font-bold text-red-500">⚠️ Fullscreen Exit Detected</h2>
+            <p>Please stay in full screen. Exiting full screen 3 times will fail the interview.</p>
+            <button className="mt-4 px-4 py-2 bg-blue-600 rounded" onClick={() => {
+  setShowExitDialog(false);
+  document.documentElement.requestFullscreen?.();
+}}
+>Continue</button>
+          </div>
+        </div>
+      )}
+
+      {showTabDialog && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 flex justify-center items-center z-50">
+          <div className="bg-black text-white border border-yellow-500 p-6 rounded-xl max-w-md">
+            <h2 className="text-xl font-bold text-yellow-400">⚠️ Tab Switch Detected</h2>
+            <p>Switching tabs or minimizing is not allowed. 3 attempts will cancel your interview.</p>
+            <button className="mt-4 px-4 py-2 bg-blue-600 rounded" onClick={() => setShowTabDialog(false)}>Got it</button>
+          </div>
         </div>
       )}
 

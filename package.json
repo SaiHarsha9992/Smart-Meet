@@ -16,6 +16,7 @@
     "dom-to-image-more": "^3.6.0",
     "face-api.js": "^0.22.2",
     "firebase": "^11.9.1",
+    "groq-sdk": "^0.26.0",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.522.0",
     "motion": "^12.18.1",

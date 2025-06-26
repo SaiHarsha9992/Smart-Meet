@@ -1,5 +1,6 @@
 "use client";
-export default function Footer() {
+
+export default function Footer({ onReportClick }) {
   return (
     <footer className="bg-gray-900 text-gray-300 py-8 px-4 md:px-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -15,7 +16,7 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-semibold text-white mb-2">Quick Links</h3>
           <ul className="space-y-1 text-sm">
-            <li><a href="/" className="hover:text-white">Dashboard</a></li>
+            <li><a href="/dashboard" className="hover:text-white">Dashboard</a></li>
             <li><a href="/about" className="hover:text-white">About</a></li>
             <li><a href="/contact" className="hover:text-white">Contact</a></li>
           </ul>
@@ -28,6 +29,14 @@ export default function Footer() {
             <li><a href="mailto:team@smartmeet.com" className="hover:text-white">team@smartmeet.com</a></li>
             <li><a href="https://www.linkedin.com/company/ghostcoder/" target="_blank" rel="noreferrer" className="hover:text-white">LinkedIn</a></li>
             <li><a href="https://github.com/SaiHarsha9992/ghostCoder" target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a></li>
+            <li>
+              <button 
+                onClick={onReportClick} 
+                className="hover:text-white underline"
+              >
+                🚩 Report Issue
+              </button>
+            </li>
           </ul>
         </div>
       </div>
