@@ -75,11 +75,13 @@ const handleContinue = () => {
   return (
     <>
     <NavBar />
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 py-10">
-      <h1 className="text-4xl font-bold text-white mb-6">Upload Your Resume</h1>
+    <div className="relative min-h-screen bg-black flex flex-col items-center justify-center px-4 py-10">
+  {/* Background Blur Layer */}
+  <div className="absolute inset-0 z-0 bg-blue-500 bg-[size:20px_20px] opacity-20 blur-[100px]" />
+      <h1 className="text-4xl font-bold text-white mb-6 z-10">Upload Your Resume</h1>
 
       <div
-        className="w-full max-w-2xl border-2 border-dashed border-gray-400 rounded-lg p-10 text-center cursor-pointer hover:bg-gray-900 transition"
+        className="w-full max-w-2xl border-2 border-dashed border-gray-400 rounded-lg p-10 text-center cursor-pointer hover:bg-gray-900 transition z-10"
         onClick={handleClick}
       >
         <p className="text-white text-lg mb-2">Click to upload your resume</p>
@@ -101,7 +103,7 @@ const handleContinue = () => {
       {error && <p className="text-red-500 mt-4">{error}</p>}
 
       {!loading && skills.length > 0 && (
-        <div className="mt-8 text-white w-full max-w-xl">
+        <div className="mt-8 text-white w-full max-w-xl z-10">
           <h2 className="text-xl font-semibold mb-2">Extracted Skills</h2>
           <div className="flex flex-wrap gap-2">
             {skills.map((s, i) => (

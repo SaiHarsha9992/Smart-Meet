@@ -23,7 +23,7 @@ export default function NavBar() {
 
   return (
     <header className="w-full flex justify-between items-center p-4 bg-black shadow-md relative">
-      <h1 className="font-bold text-white text-4xl">Smart<AuroraText>Meet</AuroraText></h1>
+      <a href="/"><h1 className="font-bold text-white text-4xl">Smart<AuroraText>Meet</AuroraText></h1></a>
 
       {!user ? (
         <button

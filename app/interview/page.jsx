@@ -80,6 +80,11 @@ export default function InterviewPage() {
     setProxyFailed(true); // ✅ Flag it as failed due to proxy
     speak("Interview failed. Multiple people detected. You are disqualified.");
     setStarted(false);
+    document.exitFullscreen?.(); // exit fullscreen mode
+    const video = document.querySelector("video");
+    if (video?.srcObject) {
+      video.srcObject.getTracks().forEach((track) => track.stop());
+    }
     setTimeout(() => router.push("/result"), 500);
   };
 
@@ -153,6 +158,12 @@ export default function InterviewPage() {
       const result = await res.json();
       setMockResult(result);
       setCandidateName(userName);
+      document.exitFullscreen?.(); // exit fullscreen mode
+const video = document.querySelector("video");
+if (video?.srcObject) {
+  video.srcObject.getTracks().forEach((track) => track.stop());
+}
+
       router.push("/result");
     } catch (err) {
       console.error("❌ Failed to evaluate report:", err);
@@ -186,6 +197,12 @@ export default function InterviewPage() {
           setCandidateName(userName);
           speak("Interview canceled. Proxy or manipulation detected.");
           setStarted(false);
+          document.exitFullscreen?.(); // exit fullscreen mode
+const video = document.querySelector("video");
+if (video?.srcObject) {
+  video.srcObject.getTracks().forEach((track) => track.stop());
+}
+
           setTimeout(() => router.push("/result"), 0);
         } else {
           setShowExitDialog(true);

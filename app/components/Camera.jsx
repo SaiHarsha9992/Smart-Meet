@@ -14,6 +14,7 @@ const emojiMap = {
 };
 
 const Camera = ({ onProxyDetected }) => {
+  
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
