@@ -12,6 +12,7 @@ import {
 import NavBar from "../components/NavBar";
 import { useInterview } from "../context/InterviewContext";
 import { useAuth } from "../lib/useAuth";
+import Footer from "../components/Footer";
 
 export default function Dashboard() {
   const { candidateName } = useInterview();
@@ -108,6 +109,16 @@ export default function Dashboard() {
   }
 }, [user?.displayName]); // trigger effect only after displayName is available
 
+useEffect(() => {
+  if (user === null) {
+    router.push("/login");
+  }
+}, [user]);
+
+if (user === undefined) {
+  return <div className="text-white text-center p-6">Checking login...</div>;
+}
+
  if (!user?.displayName || user.displayName.trim() === "") {
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -134,11 +145,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white p-6">
+    <>
       <NavBar />
+    <div className="min-h-screen bg-black text-white p-6">
       <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">📊 Performance Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10 mb-6 w-1/2 items-center mx-auto">
         <div className="bg-gray-900 p-4 rounded-xl shadow-lg">
           <p className="text-lg font-semibold">Last Score</p>
           <p className="text-2xl text-green-400 font-bold">
@@ -168,7 +180,7 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-gray-900 p-4 rounded-xl shadow-lg mb-6">
+      <div className="bg-gray-900 p-4 rounded-xl shadow-lg mb-6 w-3/4 mx-auto">
         <h2 className="text-xl font-semibold mb-2">📚 Section-Wise Averages</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg">
           {Object.entries(averages).map(([section, value]) => (
@@ -180,7 +192,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-xl shadow-xl">
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-xl shadow-xl w-1/2 mx-auto mb-6">
         <h2 className="text-xl font-bold mb-2">🤖 AI Suggestion</h2>
         {lowestSection ? (
           <p>
@@ -194,6 +206,10 @@ export default function Dashboard() {
           <p>No suggestions yet.</p>
         )}
       </div>
+
     </div>
+    
+      <Footer />
+      </>
   );
 }

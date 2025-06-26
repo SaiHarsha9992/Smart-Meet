@@ -63,6 +63,12 @@ export default function NavBar() {
               </div>
               <div className="border-t px-4 py-2">
                 <button
+                  onClick={() => router.push("/dashboard")}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition mb-2"
+                >
+                  Dashboard
+                </button>
+                <button
                   onClick={handleSignOut}
                   className="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded transition"
                 >

@@ -37,7 +37,12 @@ export default function InterviewPage() {
 console.log("InterviewPage rendered with skills:", skills, "and experience:", experience);
   useEffect(() => {
     const explainInterview = async () => {
-      if (!skills.length) return;
+  if (!skills.length || !experience) {
+    setTimeout(() => {
+      router.push("/"); // Redirect to upload page
+    }, 2000); // 2 second delay for smooth UX
+  }
+
       const prompt = `Give a short and friendly explanation for a mock interview for a student named ${userName}, who is learning ${skills.join(", ")} with experience level: ${experience}. Include what type of roles ${userName} can get and how this mock will help. Also, generate only 5 short and simple interview questions relevant to these skills.`;
       const intro = await askGemini(prompt);
       setMessages([{ role: "ai", text: intro }]);
@@ -46,6 +51,40 @@ console.log("InterviewPage rendered with skills:", skills, "and experience:", ex
     };
     explainInterview();
   }, [skills, experience]);
+
+  if (user == null || user === undefined || !user) {
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+      <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <p className="text-lg font-medium">No Account, No Interview 😉</p>
+    </div>
+  );
+}
+  if (!skills.length || !experience) {
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
+      <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+      </svg>
+      <p className="text-lg font-medium">Skills not found. Redirecting to upload page...</p>
+    </div>
+  );
+}
+
+useEffect(() => {
+  if (user === null) {
+    router.push("/login");
+  }
+}, [user]);
+
+if (user === undefined) {
+  return <div className="text-white text-center p-6">Checking login...</div>;
+}
+
 // useEffect(() => {
 //   if (!skills.length || !experience) {
 //     router.push("/"); // Redirect to upload if data is missing
