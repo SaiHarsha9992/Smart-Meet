@@ -108,13 +108,14 @@ export default function Dashboard() {
   }
 }, [user?.displayName]); // trigger effect only after displayName is available
 
-  if (!candidateName || candidateName.trim() === "") {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-xl animate-pulse">⏳ Waiting for candidate name...</p>
-      </div>
-    );
-  }
+ if (!user?.displayName || user.displayName.trim() === "") {
+  return (
+    <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <p className="text-xl animate-pulse">⏳ Waiting for user info...</p>
+    </div>
+  );
+}
+
 
   if (loading) {
     return (
