@@ -14,6 +14,8 @@ import { useInterview } from "../context/InterviewContext";
 import { useAuth } from "../lib/useAuth";
 import Footer from "../components/Footer";
 import { useRouter } from "next/navigation";
+import { AuroraText } from "@/components/magicui/aurora-text";
+import Image from "next/image";
 
 export default function Dashboard() {
   const { candidateName } = useInterview();
@@ -180,38 +182,56 @@ if (testResults.length === 0) {
       <NavBar />
     <div className="min-h-screen bg-black text-white p-6">
       <h1 className="text-3xl md:text-4xl font-bold mb-4 text-center">📊 Performance Dashboard</h1>
+     <h1 className="text-3xl md:text-4xl font-bold pt-4 text-center flex flex-col md:flex-row items-center justify-start gap-4">
+  <span>Hello</span>
+  {user?.photoURL && (
+    <Image
+      src={user.photoURL}
+      width={60}
+      height={60}
+      alt="Candidate"
+      className="rounded-full border border-white shadow-md"
+    />
+  )}
+  <AuroraText>{user?.displayName || "Student"}</AuroraText>
+</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10 mb-6 w-1/2 items-center mx-auto">
-        <div className="bg-gray-900 p-4 rounded-xl shadow-lg">
-          <p className="text-lg font-semibold">Last Score</p>
-          <p className="text-2xl text-green-400 font-bold">
-            {testResults[testResults.length - 1]?.overall}/10
-          </p>
-        </div>
-        <div className="bg-gray-900 p-4 rounded-xl shadow-lg">
-          <p className="text-lg font-semibold">Average Score</p>
-          <p className="text-2xl text-blue-400 font-bold">{averages.overall}/10</p>
-        </div>
-        <div className="bg-gray-900 p-4 rounded-xl shadow-lg">
-          <p className="text-lg font-semibold">Weakest Section</p>
-          <p className="text-2xl text-red-400 font-bold capitalize">{lowestSection?.name}</p>
-        </div>
-      </div>
+     <div className="flex flex-col md:flex-row justify-center items-start gap-8 w-full mt-10 px-4">
+  {/* Left - Score Cards */}
+  <div className="grid grid-cols-1 gap-6 w-full md:w-lg">
+    <div className="bg-gray-900 p-4 rounded-xl shadow-lg">
+      <p className="text-lg font-semibold">Last Score</p>
+      <p className="text-2xl text-green-400 font-bold">
+        {testResults[testResults.length - 1]?.overall}/10
+      </p>
+    </div>
+    <div className="bg-gray-900 p-4 rounded-xl shadow-lg">
+      <p className="text-lg font-semibold">Average Score</p>
+      <p className="text-2xl text-blue-400 font-bold">{averages.overall}/10</p>
+    </div>
+    <div className="bg-gray-900 p-4 rounded-xl shadow-lg">
+      <p className="text-lg font-semibold">Weakest Section</p>
+      <p className="text-2xl text-red-400 font-bold capitalize">{lowestSection?.name}</p>
+    </div>
+  </div>
 
-      <div className="bg-gray-900 p-4 rounded-xl shadow-lg mb-6">
-        <h2 className="text-xl font-semibold mb-2">📈 Overall Progress</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={testResults}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="test" />
-            <YAxis domain={[0, 10]} />
-            <Tooltip />
-            <Line type="monotone" dataKey="overall" stroke="#00FF99" strokeWidth={3} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+  {/* Right - Chart */}
+  <div className="bg-gray-900 p-4 rounded-xl shadow-lg w-full md:w-2/3">
+    <h2 className="text-xl font-semibold mb-2">📈 Overall Progress</h2>
+    <ResponsiveContainer width="100%" height={250}>
+      <LineChart data={testResults}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="test" />
+        <YAxis domain={[0, 10]} />
+        <Tooltip />
+        <Line type="monotone" dataKey="overall" stroke="#00FF99" strokeWidth={3} />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+</div>
 
-      <div className="bg-gray-900 p-4 rounded-xl shadow-lg mb-6 w-3/4 mx-auto">
+
+      <div className="bg-gray-900 p-4 rounded-xl shadow-lg mb-6 w-3/4 mx-auto mt-4">
         <h2 className="text-xl font-semibold mb-2">📚 Section-Wise Averages</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg">
           {Object.entries(averages).map(([section, value]) => (
