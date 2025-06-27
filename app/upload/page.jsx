@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { parseResumeSkills } from '@/app/utils/parseResume';
+import { extractTextFromPDF, parseResumeSkills } from '@/app/utils/parseResume';
 import NavBar from '../components/NavBar';
 import { useAuth } from '../lib/useAuth';
 import { useInterview } from '../context/InterviewContext';
@@ -45,24 +45,41 @@ export default function Upload() {
 
   const handleClick = () => fileInputRef.current?.click();
 
-  const handleFileChange = async (e) => {
-    const newFiles = Array.from(e.target.files || []);
-    if (!newFiles.length) return;
+const handleFileChange = async (e) => {
+  const newFiles = Array.from(e.target.files || []);
+  if (!newFiles.length) return;
 
-    setFiles(newFiles);
-    setLoading(true);
-    setError("");
-    setSkills([]);
+  setFiles(newFiles);
+  setLoading(true);
+  setError("");
+  setSkills([]);
 
-    try {
-      const extracted = await parseResumeSkills(newFiles[0]);
-      setSkills(extracted);
-    } catch {
-      setError("Failed to parse resume. Try again.");
-    } finally {
-      setLoading(false);
+  try {
+    const text = await extractTextFromPDF(newFiles[0]);
+
+    const res = await fetch("/api/geminipdf", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    const data = await res.json();
+    if (Array.isArray(data.skills)) {
+      setSkills(data.skills);
+    } else {
+      setError("Failed to extract skills using Gemini.");
     }
-  };
+  } catch (err) {
+    console.error("Skill extraction error:", err);
+    setError("Failed to extract skills.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
 const handleContinue = () => {
   setCtxSkills(skills);
