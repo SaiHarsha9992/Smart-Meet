@@ -13,6 +13,7 @@ import NavBar from "../components/NavBar";
 import { useInterview } from "../context/InterviewContext";
 import { useAuth } from "../lib/useAuth";
 import Footer from "../components/Footer";
+import { useRouter } from "next/router";
 
 export default function Dashboard() {
   const { candidateName } = useInterview();
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
  const user = useAuth();
+ const router = useRouter();
   const computeAverages = (data) => {
     const categories = [
       "communication",
