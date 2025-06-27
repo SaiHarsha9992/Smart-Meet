@@ -1,6 +1,6 @@
 "use client";
 
-export default function Footer({ onReportClick }) {
+export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300 py-8 px-4 md:px-12">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -30,12 +30,13 @@ export default function Footer({ onReportClick }) {
             <li><a href="https://www.linkedin.com/company/ghostcoder/" target="_blank" rel="noreferrer" className="hover:text-white">LinkedIn</a></li>
             <li><a href="https://github.com/SaiHarsha9992/ghostCoder" target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a></li>
             <li>
-              <button 
-                onClick={onReportClick} 
+              <a href="/report">
+              <button  
                 className="hover:text-white underline"
               >
                 🚩 Report Issue
               </button>
+              </a>
             </li>
           </ul>
         </div>

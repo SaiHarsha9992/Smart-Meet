@@ -22,6 +22,7 @@ export default function Upload() {
   const [experience, setExperience] = useState("");
   const router = useRouter();
   const fileInputRef = useRef(null);
+  const [ats, setAts] = useState(null);
   const user = useAuth();
 // ✅ Updated redirect logic
   useEffect(() => {
@@ -58,19 +59,21 @@ const handleFileChange = async (e) => {
     const text = await extractTextFromPDF(newFiles[0]);
 
     const res = await fetch("/api/geminipdf", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ text }),
-    });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ text }),
+});
 
-    const data = await res.json();
-    if (Array.isArray(data.skills)) {
-      setSkills(data.skills);
-    } else {
-      setError("Failed to extract skills using Gemini.");
-    }
+const data = await res.json();
+if (Array.isArray(data.skills)) {
+  setSkills(data.skills);
+  setAts(data.ats);  // 💡 Store ATS result
+} else {
+  setError("Failed to extract skills using Gemini.");
+}
+
   } catch (err) {
     console.error("Skill extraction error:", err);
     setError("Failed to extract skills.");
@@ -96,9 +99,11 @@ const handleContinue = () => {
   {/* Background Blur Layer */}
   <div className="absolute inset-0 z-0 bg-blue-500 bg-[size:20px_20px] opacity-20 blur-[100px]" />
       <h1 className="text-4xl font-bold text-white mb-6 z-10">Upload Your Resume</h1>
-
+    
+    
+    <div className='flex flex-col w-full items-center justify-center gap-8 z-10 '>
       <div
-        className="w-full max-w-2xl border-2 border-dashed border-gray-400 rounded-lg p-10 text-center cursor-pointer hover:bg-gray-900 transition z-10"
+        className="w-full max-w-lg border-2 border-dashed border-gray-400 rounded-lg p-10 text-center cursor-pointer hover:bg-gray-900 transition z-10"
         onClick={handleClick}
       >
         <p className="text-white text-lg mb-2">Click to upload your resume</p>
@@ -111,10 +116,33 @@ const handleContinue = () => {
           className="hidden"
         />
       </div>
-
-      {files.length > 0 && (
-        <p className="mt-4 text-white text-center">{files[0].name}</p>
+       {files.length > 0 && (
+        <p className="text-white text-center">{files[0].name}</p>
       )}
+     {ats && (
+  <div className="p-4 bg-gray-800 border border-gray-600 rounded-lg w-[600px]">
+    <h3 className="text-lg font-semibold text-white mb-2">ATS Resume Score</h3>
+    <p
+      className={`font-bold text-4xl ${
+        ats.score < 35 ? "text-red-500" : "text-green-400"
+      }`}
+    >
+      {ats.score}/100
+    </p>
+
+    <p className="text-gray-300 mt-1 text-[12px]">{ats.reason}</p>
+
+    <p className="text-gray-400 pt-2 text-[11px]">
+      Note: This ATS Score is given by Gemini, It is giving by text baseed only.
+    </p>
+  </div>
+)}
+
+    </div>
+      
+      
+
+     
 
       {loading && <p className="text-yellow-400 mt-4">Extracting skills...</p>}
       {error && <p className="text-red-500 mt-4">{error}</p>}
@@ -160,6 +188,10 @@ const handleContinue = () => {
       {!loading && files.length > 0 && skills.length === 0 && (
         <p className="text-gray-400 mt-4">No skills found in the uploaded file.</p>
       )}
+
+      
+
+
     </div>
     <Footer/>
     </>

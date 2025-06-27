@@ -23,7 +23,7 @@
     "groq-sdk": "^0.26.0",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.522.0",
-    "motion": "^12.18.1",
+    "motion": "^12.19.2",
     "next": "15.3.4",
     "next-auth": "^4.24.11",
     "openai": "^5.7.0",
