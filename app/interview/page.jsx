@@ -266,32 +266,41 @@ export default function InterviewPage() {
 
   // Report dialog submit
   const handleSubmitReport = async () => {
-    try {
-      const res = await fetch("https://9xbddx8l07.execute-api.eu-north-1.amazonaws.com/prod/report-issue", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_name: user?.displayName || "Unknown",
-          email: user?.email || "unknown@example.com",
-          issue_type: issueType,
-          issue_description: issueDescription,
-          contact_number: contactNumber,
-        }),
-      });
-      if (res.ok) {
-        alert("✅ Issue reported successfully.");
-        setShowReportDialog(false);
-        setIssueType("");
-        setIssueDescription("");
-        setContactNumber("");
-      } else {
-        alert("❌ Failed to report the issue.");
-      }
-    } catch (error) {
-      console.error("Report error:", error);
-      alert("⚠️ Something went wrong while reporting.");
+  if (!issueType || !issueDescription || !contactNumber) {
+    alert("⚠️ Please fill in all fields before submitting.");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://9xbddx8l07.execute-api.eu-north-1.amazonaws.com/prod/report-issue", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_name: user?.displayName || "Unknown",
+        email: user?.email || "unknown@example.com",
+        issue_type: issueType,
+        issue_description: issueDescription,
+        contact_number: contactNumber,
+      }),
+    });
+
+    if (res.ok) {
+      alert("✅ Issue reported successfully.");
+      setShowReportDialog(false);
+      setIssueType("");
+      setIssueDescription("");
+      setContactNumber("");
+    } else {
+      const err = await res.text();
+      console.error("❌ API response:", err);
+      alert("❌ Failed to report the issue. Server error.");
     }
-  };
+  } catch (error) {
+    console.error("❌ Report error:", error);
+    alert("⚠️ Something went wrong while reporting.");
+  }
+};
+
 
   if (user === undefined) return <div className="text-white text-center p-6">Checking login...</div>;
 
@@ -335,6 +344,28 @@ export default function InterviewPage() {
           )}
         </div>
       )}
+
+{showReportDialog && (
+  <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-80 flex justify-center items-center z-50">
+    <div className="bg-zinc-900 p-6 rounded-xl text-white max-w-md w-full shadow-xl border border-gray-600">
+      <h2 className="text-xl font-bold mb-4">🚩 Report an Issue</h2>
+
+      <label className="block mb-2 text-sm">Issue Type</label>
+      <input type="text" value={issueType} onChange={(e) => setIssueType(e.target.value)} className="w-full p-2 mb-4 rounded bg-gray-800 border border-gray-600" />
+
+      <label className="block mb-2 text-sm">Description</label>
+      <textarea value={issueDescription} onChange={(e) => setIssueDescription(e.target.value)} className="w-full p-2 mb-4 rounded bg-gray-800 border border-gray-600" rows={3}></textarea>
+
+      <label className="block mb-2 text-sm">Contact Number</label>
+      <input type="text" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} className="w-full p-2 mb-4 rounded bg-gray-800 border border-gray-600" />
+
+      <div className="flex justify-end gap-2">
+        <button onClick={() => setShowReportDialog(false)} className="px-4 py-2 rounded bg-gray-600 hover:bg-gray-700">Cancel</button>
+        <button onClick={handleSubmitReport} className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700">Submit</button>
+      </div>
+    </div>
+  </div>
+)}
 
       {showWarningDialog && (
   <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex justify-center items-center z-50">

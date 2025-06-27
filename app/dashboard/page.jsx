@@ -13,7 +13,7 @@ import NavBar from "../components/NavBar";
 import { useInterview } from "../context/InterviewContext";
 import { useAuth } from "../lib/useAuth";
 import Footer from "../components/Footer";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const { candidateName } = useInterview();
