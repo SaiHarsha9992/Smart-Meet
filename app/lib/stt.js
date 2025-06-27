@@ -7,19 +7,40 @@ export function startListening(onResult, onEnd) {
 
   const recognition = new SpeechRecognition();
   recognition.lang = "en-US";
-  recognition.interimResults = false;
+  recognition.interimResults = true; // Enable partial results
   recognition.maxAlternatives = 1;
 
+  let finalTranscript = "";
+  let silenceTimer = null;
+
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    onResult(transcript);
+    let interimTranscript = "";
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript + " ";
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+
+    // Reset the silence timer on every result
+    clearTimeout(silenceTimer);
+    silenceTimer = setTimeout(() => {
+      recognition.stop(); // Stop after 3s of silence
+    }, 2000);
   };
 
   recognition.onerror = (e) => {
     console.error("Speech recognition error:", e.error);
+    clearTimeout(silenceTimer);
   };
 
   recognition.onend = () => {
+    if (finalTranscript.trim()) {
+      onResult(finalTranscript.trim());
+    }
     onEnd && onEnd();
   };
 
