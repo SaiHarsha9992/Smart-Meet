@@ -125,12 +125,12 @@ useEffect(() => {
             muted
             className="w-full h-full object-cover"
           />
-          <button
+          {/* <button
             onClick={toggleCamera}
             className="absolute bottom-2 right-2 bg-blue-500 rounded-full w-[30px] h-[30px] flex justify-center items-center p-1 hover:bg-white/20 transition"
           >
             {isCameraOn ? <FiCameraOff size={20} /> : <FiCamera size={20} />}
-          </button>
+          </button> */}
         </>
       )}
     </div>

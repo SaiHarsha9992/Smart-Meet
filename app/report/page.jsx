@@ -3,8 +3,10 @@ import React, { useState } from 'react'
 import { useAuth } from '../lib/useAuth';
 import NavBar from '../components/NavBar';
 import Footer from '../components/Footer';
+import { useRouter } from 'next/navigation';
 
 export default function Report() {
+  const router = useRouter();
     const user = useAuth();
      const [issueType, setIssueType] = useState("");
        const [issueDescription, setIssueDescription] = useState("");
@@ -93,7 +95,7 @@ export default function Report() {
 
       <div className="flex justify-between mt-4">
         <button
-          onClick={() => setShowReportDialog(false)}
+          onClick={() => router.push('/')}
           className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
         >
           Cancel
