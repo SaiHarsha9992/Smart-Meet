@@ -306,7 +306,6 @@ export default function InterviewPage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white p-6 flex flex-col items-center">
-      <NavBar />
       <h1 className="text-3xl font-bold mb-2 text-center">🧠 AI Mock Interview</h1>
 
       <div className="fixed bottom-4 left-4 z-50 border border-gray-600 rounded-lg overflow-hidden">
